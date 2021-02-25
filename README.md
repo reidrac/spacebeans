@@ -1,6 +1,6 @@
 # SpaceBeans Gemini Server
 
-This is an experimental server for [Gemini](https://gemini.circumlunar.space/) protocol.
+This is an experimental server for the [Gemini](https://gemini.circumlunar.space/) protocol.
 
 It is built using [Scala](https://www.scala-lang.org/) and [Akka Streams](https://doc.akka.io/docs/akka/current/stream/index.html). The name tries to link the Gemini *theme* with the fact that the
 server runs on the Java Virtual Machine.
