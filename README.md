@@ -23,7 +23,7 @@ later; [openJRE](https://adoptopenjdk.net/) recommended).
 
 You can run the service with:
 ```
-java -jar spacebeans-VERSION.jar spacebeans.conf
+java -jar spacebeans-VERSION.jar -c spacebeans.conf
 ```
 
 You can also run the server with `--help` flag for CLI help.
