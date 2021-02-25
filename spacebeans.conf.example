@@ -1,0 +1,51 @@
+// SpaceBeans gemini server configuration
+
+// listening address/port
+address = "127.0.0.1"
+port = 1965
+
+// how long until an idle connection is closed
+idle-timeout = "10 seconds"
+
+// default MIME type if detection fails
+default-mime-type = "text/plain"
+
+// by default a built-in resolver is used;
+// use this to define your own MIME types
+// mime-types = {
+//     "text/gemini": [".gmi", ".gemini"]
+// }
+
+// hosts configuration
+virtual-hosts = [
+    {
+        host = "localhost"
+        root = "/var/gemini/localhost/"
+        index-file = "index.gmi"
+
+        directory-listing = true
+
+        // optional parameters for text/gemini
+        // gemini-params = "charset=utf-8; lang=en"
+
+        // comment out to use an auto-generated self-signed certificate
+        key-store {
+            path = "/path/to/keystore.jks"
+            alias = "localhost"
+            password = "secret"
+        }
+    }
+]
+
+// SSL support
+gen-cert-valid-for = "365 days"
+enabled-protocols = [ "TLSv1.2", "TLSv1.3" ]
+enabled-cipher-suites = [
+    "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+    "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+    "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+    "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"
+]
+
