@@ -1,7 +1,7 @@
 
 # What's new?
 
-## Release 1.0.0 - 2021-??-??
+## Release 1.0.0 - 2021-02-25
 
- - TODO
+ - First public release
 
