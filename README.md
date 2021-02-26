@@ -93,9 +93,9 @@ validating the certificate, this is perfectly safe.
 Requirements:
 
  - JDK 8 (or later)
- - [Mill](https://com-lihaoyi.github.io/mill/) for building
+ - git (it is required to set the version; GitHub's source archives won't compile)
 
-Run the server with `mill server.run` and the tests with `mill server.test`.
+Run the server with `./mill server.run` and the tests with `./mill server.test`.
 
 ## License
 
