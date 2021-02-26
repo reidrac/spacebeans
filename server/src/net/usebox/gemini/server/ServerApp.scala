@@ -10,7 +10,7 @@ object ServerApp {
   private val logger = getLogger
 
   val appName = "SpaceBeans Gemini Server"
-  val version = "1.0.1"
+  val version = BuildInfo.version
   val defConfFile = "/etc/spacebeans.conf"
 
   case class ServerOpts(
@@ -20,7 +20,7 @@ object ServerApp {
 
   val opts: Command[ServerOpts] =
     Command(
-      name = "server",
+      name = BuildInfo.name,
       header = appName
     ) {
       (

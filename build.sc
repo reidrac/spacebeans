@@ -2,7 +2,10 @@ import mill._
 import mill.scalalib._
 import scalafmt._
 
-object server extends ScalaModule with ScalafmtModule {
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION`
+import mill.contrib.buildinfo.BuildInfo
+
+object server extends ScalaModule with ScalafmtModule with BuildInfo {
   def scalaVersion = "2.13.5"
 
   def scalacOptions = Seq(
@@ -29,6 +32,32 @@ object server extends ScalaModule with ScalafmtModule {
     reformat().apply()
     super.compile()
   }
+
+  def gitHead = T.input { os.proc('git, "rev-parse", "HEAD").call().out.trim }
+
+  def getVersion = T.input {
+    val tag = try Option(
+      os.proc('git, 'describe, "--exact-match", "--tags", "--always", gitHead()).call().out.trim
+    )
+    catch { case e => None }
+
+    tag match {
+      case Some(t) => t
+      case None =>
+        val latestTaggedVersion = os.proc('git, 'describe, "--abbrev=0", "--always", "--tags").call().out.trim
+        val latestCommit = gitHead().take(6)
+        s"$latestTaggedVersion-$latestCommit"
+    }
+  }
+
+  val name = "spacebeans"
+  def buildInfoMembers: T[Map[String, String]] = T {
+    Map(
+      "name" -> name,
+      "version" -> getVersion()
+    )
+  }
+  def buildInfoPackageName = Some("net.usebox.gemini.server")
 
   object test extends Tests with ScalafmtModule {
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.2")
