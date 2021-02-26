@@ -1,6 +1,6 @@
 package net.usebox.gemini.server
 
-import java.nio.file.Path
+import java.nio.file.FileSystems
 
 import scala.concurrent.duration._
 
@@ -33,33 +33,42 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "resolve a known MIME type" in {
     Server(TestData.conf)
-      .guessMimeType(Path.of("file.html"), None) shouldBe "text/html"
+      .guessMimeType(
+        FileSystems.getDefault().getPath("file.html"),
+        None
+      ) shouldBe "text/html"
   }
 
   it should "resolve de default MIME type for unknown types" in {
     Server(TestData.conf)
       .guessMimeType(
-        Path.of("unknow"),
+        FileSystems.getDefault().getPath("unknow"),
         None
       ) shouldBe TestData.conf.defaultMimeType
   }
 
   it should "resolve gemini MIME type" in {
     Server(TestData.conf)
-      .guessMimeType(Path.of("file.gmi"), None) shouldBe "text/gemini"
+      .guessMimeType(
+        FileSystems.getDefault().getPath("file.gmi"),
+        None
+      ) shouldBe "text/gemini"
     Server(TestData.conf)
-      .guessMimeType(Path.of("file.gemini"), None) shouldBe "text/gemini"
+      .guessMimeType(
+        FileSystems.getDefault().getPath("file.gemini"),
+        None
+      ) shouldBe "text/gemini"
   }
 
   it should "resolve gemini MIME type, including parameters" in {
     Server(TestData.conf)
       .guessMimeType(
-        Path.of("file.gmi"),
+        FileSystems.getDefault().getPath("file.gmi"),
         Some("param")
       ) shouldBe "text/gemini; param"
     Server(TestData.conf)
       .guessMimeType(
-        Path.of("file.gemini"),
+        FileSystems.getDefault().getPath("file.gemini"),
         Some("param")
       ) shouldBe "text/gemini; param"
   }
@@ -67,7 +76,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "gemini MIME type parameters are sanitized" in {
     Server(TestData.conf)
       .guessMimeType(
-        Path.of("file.gmi"),
+        FileSystems.getDefault().getPath("file.gmi"),
         Some("     ; param")
       ) shouldBe "text/gemini; param"
   }
@@ -76,14 +85,17 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "resolve a known MIME type" in {
     Server(TestData.conf.copy(mimeTypes = TestData.mimeTypes))
-      .guessMimeType(Path.of("file.gmi"), None) shouldBe "config"
+      .guessMimeType(
+        FileSystems.getDefault().getPath("file.gmi"),
+        None
+      ) shouldBe "config"
   }
 
   it should "include parameters for text/gemini MIME types" in {
     Server(
       TestData.conf.copy(mimeTypes = Some(Map("text/gemini" -> List(".gmi"))))
     ).guessMimeType(
-      Path.of("file.gmi"),
+      FileSystems.getDefault().getPath("file.gmi"),
       Some("param")
     ) shouldBe "text/gemini; param"
   }
@@ -91,7 +103,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "resolve de default MIME type for unknown types" in {
     Server(TestData.conf.copy(mimeTypes = TestData.mimeTypes))
       .guessMimeType(
-        Path.of("unknow"),
+        FileSystems.getDefault().getPath("unknow"),
         None
       ) shouldBe TestData.conf.defaultMimeType
   }

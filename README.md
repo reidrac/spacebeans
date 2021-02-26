@@ -20,7 +20,7 @@ Check [CHANGES](CHANGES.md) to see what's new in the latest release.
 
 ## How to run it
 
-Download [the `jar` distribution file](https://github.com/reidrac/spacebeans/releases/) and install Java Runtime Environment 11 (or
+Download [the `jar` distribution file](https://github.com/reidrac/spacebeans/releases/) and install Java Runtime Environment 8 (or
 later; [openJRE](https://adoptopenjdk.net/) recommended).
 
 You can run the service with:
@@ -92,7 +92,7 @@ validating the certificate, this is perfectly safe.
 
 Requirements:
 
- - JDK 11
+ - JDK 8 (or later)
  - [Mill](https://com-lihaoyi.github.io/mill/) for building
 
 Run the server with `mill server.run` and the tests with `mill server.test`.

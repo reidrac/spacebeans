@@ -3,8 +3,7 @@ package net.usebox.gemini.server
 import java.nio.charset.Charset
 import javax.net.ssl.SSLEngine
 import java.net.URI
-import java.nio.file.Path
-import java.nio.file.Files
+import java.nio.file.{Path, FileSystems, Files}
 
 import scala.util.{Try, Success => TrySuccess}
 
@@ -102,7 +101,10 @@ case class Server(conf: ServiceConf) {
             logger.debug("redirect to normalize uri")
             PermanentRedirect(req, uri.normalize().toString())
           case ("gemini", host, path, Some(vhost)) =>
-            val resource = Path.of(vhost.root, path).normalize()
+            val resource = FileSystems
+              .getDefault()
+              .getPath(vhost.root, path)
+              .normalize()
 
             logger.debug(s"requesting: '$resource'")
 
