@@ -54,7 +54,7 @@ object server extends ScalaModule with ScalafmtModule with BuildInfo {
   def buildInfoMembers: T[Map[String, String]] = T {
     Map(
       "name" -> name,
-      "version" -> getVersion()
+      "version" -> getVersion().drop(1) // version tags start with v
     )
   }
   def buildInfoPackageName = Some("net.usebox.gemini.server")
