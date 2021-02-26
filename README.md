@@ -93,7 +93,7 @@ validating the certificate, this is perfectly safe.
 Requirements:
 
  - JDK 8 (or later)
- - git (it is required to set the version; GitHub's source archives won't compile)
+ - git (the git repo is required to set the version; GitHub's source archives won't compile)
 
 Run the server with `./mill server.run` and the tests with `./mill server.test`.
 
