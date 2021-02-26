@@ -90,7 +90,7 @@ validating the certificate, this is perfectly safe.
 
 Requirements:
 
- - JDK 8 (or later; openjdk 8 or 11 recommended)
+ - JDK 11
  - [Mill](https://com-lihaoyi.github.io/mill/) for building
 
 Run the server with `mill server.run` and the tests with `mill server.test`.
