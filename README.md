@@ -4,7 +4,8 @@
 
 This is an experimental server for the [Gemini](https://gemini.circumlunar.space/) protocol.
 
-It is built using [Scala](https://www.scala-lang.org/) and [Akka Streams](https://doc.akka.io/docs/akka/current/stream/index.html). The name tries to link the Gemini *theme* with the fact that the
+It is built using [Scala](https://www.scala-lang.org/) and [Akka Streams](https://doc.akka.io/docs/akka/current/stream/index.html).
+The name tries to link the Gemini *theme* with the fact that the
 server runs on the Java Virtual Machine.
 
 Some of the **SpaceBeans** features:
@@ -17,6 +18,8 @@ Some of the **SpaceBeans** features:
  - Configurable SSL engine (e.g. TLSv1.2 and/or TLSv1.3), with configurable ciphers
 
 Check [CHANGES](CHANGES.md) to see what's new in the latest release.
+
+If you have a Gemini browser, you can also visit: [gemini://capsule.usebox.net/spacebeans/](gemini://capsule.usebox.net/spacebeans/)
 
 ## How to run it
 
@@ -35,7 +38,7 @@ how to configure the service.
 
 ### Running it as a service
 
-TODO: instructions with systemd or similar.
+Check this document on [Deployment.md](how to deploy on Debian).
 
 ## On security
 
@@ -58,7 +61,7 @@ Comment out the `key-store` section on your virtual host and you are done.
 
 You can generate a self signed certificate using Java's `keytool`:
 ```
-keytool -genkey -keyalg RSA -alias ALIAS -keystore keystore.jks -storepass SECRET -validity 36500 -keysize 2048
+keytool -genkey -keyalg RSA -alias ALIAS -keystore keystore.jks -storepass SECRET -noprompt -validity 36500 -keysize 2048
 ```
 
 When entering the certificate details, use the domain name as `CN`.
