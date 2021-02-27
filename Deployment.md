@@ -137,5 +137,10 @@ Change the `ExecStart` command in your service file to:
 ExecStart=/usr/bin/java -Dlogback.configurationFile=/opt/spacebeans/logback.xml -jar /opt/spacebeans/spacebeans-VERSION.jar -c /opt/spacebeans/spacebeans.conf
 ```
 
+Then restart the service:
+```
+systemctl restart spacebeans.service
+```
+
 This should make the logs nicer.
 
