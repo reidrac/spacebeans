@@ -111,5 +111,31 @@ Then enable it so it starts after a reboot:
 systemctl enable spacebeans.service
 ```
 
-And you're done!
+And you're probably done!
+
+6. Optionally, tidy up your logs.
+
+The logs have redundant information when collected by systemd.
+
+Create this file in `/opt/spacebeans/logback.xml`:
+```
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+        <pattern>[%level] %message%n%xException{10}</pattern>
+    </encoder>
+  </appender>
+  <logger name="net.usebox.gemini.server" level="INFO" />
+  <root level="WARN">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
+```
+
+Change the `ExecStart` command in your service file to:
+```
+ExecStart=/usr/bin/java -Dlogback.configurationFile=/opt/spacebeans/logback.xml -jar /opt/spacebeans/spacebeans-VERSION.jar -c /opt/spacebeans/spacebeans.conf
+```
+
+This should make the logs nicer.
 
