@@ -1,9 +1,5 @@
 package net.usebox.gemini.server
 
-import com.monovore.decline._
-
-import cats.implicits._
-
 import org.log4s._
 
 object ServerApp {
@@ -14,38 +10,24 @@ object ServerApp {
   val defConfFile = "/etc/spacebeans.conf"
 
   case class ServerOpts(
-      version: Boolean,
       confFile: String
   )
 
-  val opts: Command[ServerOpts] =
-    Command(
-      name = BuildInfo.name,
-      header = appName
-    ) {
-      (
-        Opts
-          .flag("version", "Display the version and exit.")
-          .orFalse,
-        Opts
-          .option[String](
-            "conf",
-            s"Configuration file (default: $defConfFile).",
-            short = "c"
-          )
-          .withDefault(defConfFile)
-      ).mapN { (version, confFile) =>
-        ServerOpts(version, confFile)
-      }
-    }
+  val parser = new scopt.OptionParser[ServerOpts](BuildInfo.name) {
+    head(appName, BuildInfo.version)
+
+    opt[String]('c', "conf")
+      .action((x, c) => c.copy(confFile = x))
+      .text(s"Configuration file (default: $defConfFile)")
+
+    help("help").text("Displays this help and exits")
+    version("version")
+    note("\nProject page: https://github.com/reidrac/spacebeans")
+  }
 
   def main(args: Array[String]): Unit =
-    opts.parse(args.toIndexedSeq) match {
-      case Left(help) =>
-        println(help)
-      case Right(ServerOpts(true, _)) =>
-        println(version)
-      case Right(ServerOpts(_, confFile)) =>
+    parser.parse(args, ServerOpts(defConfFile)) match {
+      case Some(ServerOpts(confFile)) =>
         ServiceConf.load(confFile) match {
           case Left(error) =>
             logger
@@ -58,5 +40,6 @@ object ServerApp {
             )
             Server(conf).serve
         }
+      case None => // will display error
     }
 }

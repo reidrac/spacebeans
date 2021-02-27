@@ -21,7 +21,7 @@ object server extends ScalaModule with ScalafmtModule with BuildInfo {
 
   def ivyDeps = Agg(
     ivy"com.github.pureconfig::pureconfig:0.14.0",
-    ivy"com.monovore::decline:1.3.0",
+    ivy"com.github.scopt::scopt:4.0.0",
     ivy"org.log4s::log4s:1.8.2",
     ivy"ch.qos.logback:logback-classic:1.2.3",
     ivy"com.typesafe.akka::akka-stream:2.6.12",
