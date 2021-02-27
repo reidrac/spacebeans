@@ -62,7 +62,7 @@ virtual-hosts = [
 
         key-store {
             path = "/opt/spacebeans/keystore.jks"
-            alias = "*your domain*"
+            alias = "*your alias*"
             password = "*your secret*"
         }
     }
