@@ -19,7 +19,7 @@ Some of the **SpaceBeans** features:
 
 Check [CHANGES](CHANGES.md) to see what's new in the latest release.
 
-If you have a Gemini browser, you can also visit: gemini://capsule.usebox.net/spacebeans/
+If you have a Gemini browser, you can also visit: `gemini://capsule.usebox.net/spacebeans/`
 
 ## How to run it
 
@@ -38,7 +38,7 @@ how to configure the service.
 
 ### Running it as a service
 
-Check this document on [Deployment.md](how to deploy on Debian).
+Check this document on [how to deploy on Debian](Deployment.md).
 
 ## On security
 
