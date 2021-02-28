@@ -100,10 +100,12 @@ case class Server(conf: ServiceConf) {
           case ("gemini", _, _, _) if uri.normalize() != uri =>
             logger.debug("redirect to normalize uri")
             PermanentRedirect(req, uri.normalize().toString())
-          case ("gemini", host, path, Some(vhost)) =>
+          case ("gemini", host, rawPath, Some(vhost)) =>
+            val (root, path) = vhost.getRoot(rawPath)
+
             val resource = FileSystems
               .getDefault()
-              .getPath(vhost.root, path)
+              .getPath(root, path)
               .normalize()
 
             logger.debug(s"requesting: '$resource'")

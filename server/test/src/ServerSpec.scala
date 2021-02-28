@@ -231,6 +231,25 @@ class ServerSpec extends AnyFlatSpec with Matchers {
     }
   }
 
+  it should "return proxy request refused for non gemini schemes" in {
+    Server(TestData.conf)
+      .handleReq("https://localhost/") should matchPattern {
+      case _: ProxyRequestRefused =>
+    }
+  }
+
+  it should "include gemini params for gemini MIME type" in {
+    Server(
+      TestData.conf.copy(virtualHosts =
+        List(TestData.conf.virtualHosts(0).copy(geminiParams = Some("test")))
+      )
+    ).handleReq("gemini://localhost/index.gmi") should matchPattern {
+      case Success(_, "text/gemini; test", Some(_), 25L) =>
+    }
+  }
+
+  behavior of "handleReq, directory listings"
+
   it should "return a directory listing if is enabled and no index" in {
     Server(TestData.conf)
       .handleReq("gemini://localhost/dir/") should matchPattern {
@@ -294,20 +313,75 @@ class ServerSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "return proxy request refused for non gemini schemes" in {
-    Server(TestData.conf)
-      .handleReq("https://localhost/") should matchPattern {
-      case _: ProxyRequestRefused =>
+  behavior of "handleReq, user directories"
+
+  it should "return success on reading file" in {
+    Server(TestData.confUserDir).handleReq(
+      "gemini://localhost/~username/index.gmi"
+    ) should matchPattern {
+      case Success(_, "text/gemini", Some(_), 38L) =>
     }
   }
 
-  it should "include gemini params for gemini MIME type" in {
+  it should "return redirect accessing the user directory without ending slash" in {
+    Server(TestData.confUserDir).handleReq(
+      "gemini://localhost/~username"
+    ) should matchPattern {
+      case _: PermanentRedirect =>
+    }
+  }
+
+  it should "return success accessing the user directory index" in {
+    Server(TestData.confUserDir).handleReq(
+      "gemini://localhost/~username/"
+    ) should matchPattern {
+      case Success(_, "text/gemini", Some(_), 38L) =>
+    }
+  }
+
+  it should "return bad request trying to exit the root directory" in {
+    Server(TestData.confUserDir).handleReq(
+      "gemini://localhost/~username/../../"
+    ) should matchPattern {
+      case _: BadRequest =>
+    }
+  }
+
+  it should "return redirect to the virtual host root when leaving the user dir" in {
+    Server(TestData.confUserDir).handleReq(
+      "gemini://localhost/~username/../"
+    ) should matchPattern {
+      case _: PermanentRedirect =>
+    }
+  }
+
+  it should "not translate root if used an invalid user pattern" in {
+    Server(TestData.confUserDir).handleReq(
+      "gemini://localhost/~username../"
+    ) should matchPattern {
+      case _: NotFound =>
+    }
+
+    Server(TestData.confUserDir).handleReq(
+      "gemini://localhost/~0invalid/"
+    ) should matchPattern {
+      case _: NotFound =>
+    }
+  }
+
+  it should "not translate root if no user directory path was provided" in {
     Server(
       TestData.conf.copy(virtualHosts =
-        List(TestData.conf.virtualHosts(0).copy(geminiParams = Some("test")))
+        List(
+          TestData.conf
+            .virtualHosts(0)
+            .copy(userDirectories = true)
+        )
       )
-    ).handleReq("gemini://localhost/index.gmi") should matchPattern {
-      case Success(_, "text/gemini; test", Some(_), 25L) =>
+    ).handleReq(
+      "gemini://localhost/~username/"
+    ) should matchPattern {
+      case _: NotFound =>
     }
   }
 
@@ -326,6 +400,19 @@ class ServerSpec extends AnyFlatSpec with Matchers {
       genCertValidFor = 1.day,
       enabledProtocols = Nil,
       enabledCipherSuites = Nil
+    )
+
+    val confUserDir = conf.copy(virtualHosts =
+      List(
+        conf
+          .virtualHosts(0)
+          .copy(
+            userDirectories = true,
+            userDirectoryPath = Some(
+              getClass.getResource("/").getPath() + "{user}/public_gemini/"
+            )
+          )
+      )
     )
 
     val mimeTypes = Some(

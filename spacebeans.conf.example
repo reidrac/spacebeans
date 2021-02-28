@@ -36,6 +36,13 @@ virtual-hosts = [
         //     { path = "relative/path/", directory-listing = true }
         // ]
 
+        // user directory support
+        // important: users are not checked, it only translates
+        // gemini://host/~user/ to use the user specific root path
+        //
+        // user-directories = false
+        // user-directory-path = "/home/{user}/public_gemini/"
+
         // comment out to use an auto-generated self-signed certificate
         key-store {
             path = "/path/to/keystore.jks"
