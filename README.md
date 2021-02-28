@@ -14,6 +14,7 @@ Some of the **SpaceBeans** features:
  - IPv4 and IPv6
  - Configurable MIME types, or a built-in resolver
  - Virtual hosting, with SNI support
+ - User directories support
  - User provided certificates or auto-generated in memory (for development)
  - Configurable SSL engine (e.g. TLSv1.2 and/or TLSv1.3), with configurable ciphers
 
