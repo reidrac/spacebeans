@@ -23,10 +23,18 @@ virtual-hosts = [
         root = "/var/gemini/localhost/"
         index-file = "index.gmi"
 
+        // default for the virtual host
         directory-listing = true
 
         // optional parameters for text/gemini
         // gemini-params = "charset=utf-8; lang=en"
+
+        // override defaults, set properties per directory
+        // important: directory's path is relative to the root
+        //
+        // directories = [
+        //     { path = "relative/path/", directory-listing = true }
+        // ]
 
         // comment out to use an auto-generated self-signed certificate
         key-store {

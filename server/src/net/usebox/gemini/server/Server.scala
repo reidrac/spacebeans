@@ -142,7 +142,7 @@ case class Server(conf: ServiceConf) {
                     bodySize = dirFile.length(),
                     bodyPath = Some(dirFilePath)
                   )
-                } else if (vhost.directoryListing) {
+                } else if (vhost.getDirectoryListing(resource)) {
                   logger.debug("directory listing")
                   DirListing(
                     req,

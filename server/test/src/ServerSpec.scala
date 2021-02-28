@@ -10,6 +10,14 @@ import akka.util.ByteString
 
 class ServerSpec extends AnyFlatSpec with Matchers {
 
+  def getPath(value: String) = FileSystems.getDefault().getPath(value)
+
+  def getPath(root: String, dir: String) =
+    FileSystems
+      .getDefault()
+      .getPath(root, dir)
+      .normalize()
+
   behavior of "validPath"
 
   it should "return true for the emtpy path" in {
@@ -34,7 +42,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "resolve a known MIME type" in {
     Server(TestData.conf)
       .guessMimeType(
-        FileSystems.getDefault().getPath("file.html"),
+        getPath("file.html"),
         None
       ) shouldBe "text/html"
   }
@@ -42,7 +50,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "resolve de default MIME type for unknown types" in {
     Server(TestData.conf)
       .guessMimeType(
-        FileSystems.getDefault().getPath("unknow"),
+        getPath("unknow"),
         None
       ) shouldBe TestData.conf.defaultMimeType
   }
@@ -50,12 +58,12 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "resolve gemini MIME type" in {
     Server(TestData.conf)
       .guessMimeType(
-        FileSystems.getDefault().getPath("file.gmi"),
+        getPath("file.gmi"),
         None
       ) shouldBe "text/gemini"
     Server(TestData.conf)
       .guessMimeType(
-        FileSystems.getDefault().getPath("file.gemini"),
+        getPath("file.gemini"),
         None
       ) shouldBe "text/gemini"
   }
@@ -63,12 +71,12 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "resolve gemini MIME type, including parameters" in {
     Server(TestData.conf)
       .guessMimeType(
-        FileSystems.getDefault().getPath("file.gmi"),
+        getPath("file.gmi"),
         Some("param")
       ) shouldBe "text/gemini; param"
     Server(TestData.conf)
       .guessMimeType(
-        FileSystems.getDefault().getPath("file.gemini"),
+        getPath("file.gemini"),
         Some("param")
       ) shouldBe "text/gemini; param"
   }
@@ -76,7 +84,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "gemini MIME type parameters are sanitized" in {
     Server(TestData.conf)
       .guessMimeType(
-        FileSystems.getDefault().getPath("file.gmi"),
+        getPath("file.gmi"),
         Some("     ; param")
       ) shouldBe "text/gemini; param"
   }
@@ -86,7 +94,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "resolve a known MIME type" in {
     Server(TestData.conf.copy(mimeTypes = TestData.mimeTypes))
       .guessMimeType(
-        FileSystems.getDefault().getPath("file.gmi"),
+        getPath("file.gmi"),
         None
       ) shouldBe "config"
   }
@@ -95,7 +103,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
     Server(
       TestData.conf.copy(mimeTypes = Some(Map("text/gemini" -> List(".gmi"))))
     ).guessMimeType(
-      FileSystems.getDefault().getPath("file.gmi"),
+      getPath("file.gmi"),
       Some("param")
     ) shouldBe "text/gemini; param"
   }
@@ -103,7 +111,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   it should "resolve de default MIME type for unknown types" in {
     Server(TestData.conf.copy(mimeTypes = TestData.mimeTypes))
       .guessMimeType(
-        FileSystems.getDefault().getPath("unknow"),
+        getPath("unknow"),
         None
       ) shouldBe TestData.conf.defaultMimeType
   }
@@ -230,7 +238,53 @@ class ServerSpec extends AnyFlatSpec with Matchers {
     }
   }
 
-  it should "return not found if directory listing is nt enabled and no index" in {
+  it should "return a directory listing, directory listing flags: vhost flag false, directories flag true" in {
+    Server(
+      TestData.conf.copy(virtualHosts =
+        List(
+          TestData.conf
+            .virtualHosts(0)
+            .copy(
+              directoryListing = false,
+              directories = List(
+                Directory(
+                  getPath(getClass.getResource("/").getPath(), "dir/")
+                    .toString(),
+                  directoryListing = Some(true)
+                )
+              )
+            )
+        )
+      )
+    ).handleReq("gemini://localhost/dir/") should matchPattern {
+      case _: DirListing =>
+    }
+  }
+
+  it should "return not found with no index, directory listing flags: vhost flag true, directories flag false" in {
+    Server(
+      TestData.conf.copy(virtualHosts =
+        List(
+          TestData.conf
+            .virtualHosts(0)
+            .copy(
+              directoryListing = true,
+              directories = List(
+                Directory(
+                  getPath(getClass.getResource("/").getPath(), "dir/")
+                    .toString(),
+                  directoryListing = Some(false)
+                )
+              )
+            )
+        )
+      )
+    ).handleReq("gemini://localhost/dir/") should matchPattern {
+      case _: NotFound =>
+    }
+  }
+
+  it should "return not found if directory listing is not enabled and no index" in {
     Server(
       TestData.conf.copy(virtualHosts =
         List(TestData.conf.virtualHosts(0).copy(directoryListing = false))
@@ -266,7 +320,8 @@ class ServerSpec extends AnyFlatSpec with Matchers {
       virtualHosts = List(
         VirtualHost(
           host = "localhost",
-          root = getClass.getResource("/").getPath()
+          root = getClass.getResource("/").getPath(),
+          directories = Nil
         )
       ),
       genCertValidFor = 1.day,
