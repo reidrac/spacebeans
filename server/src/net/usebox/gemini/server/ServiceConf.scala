@@ -20,7 +20,7 @@ case class VirtualHost(
     indexFile: String = "index.gmi",
     directoryListing: Boolean = true,
     geminiParams: Option[String] = None,
-    directories: List[Directory]
+    directories: List[Directory] = Nil
 )
 
 object VirtualHost {

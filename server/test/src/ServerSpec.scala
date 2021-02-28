@@ -320,8 +320,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
       virtualHosts = List(
         VirtualHost(
           host = "localhost",
-          root = getClass.getResource("/").getPath(),
-          directories = Nil
+          root = getClass.getResource("/").getPath()
         )
       ),
       genCertValidFor = 1.day,
