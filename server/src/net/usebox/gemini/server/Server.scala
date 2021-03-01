@@ -264,7 +264,7 @@ case class Server(conf: ServiceConf) {
           .wireTap(resp =>
             logger.info(
               s"""${connection.remoteAddress
-                .getHostName()} "${resp.req}" ${resp.status} ${resp.bodySize}"""
+                .getHostString()} "${resp.req}" ${resp.status} ${resp.bodySize}"""
             )
           )
           .flatMapConcat(_.toSource)
