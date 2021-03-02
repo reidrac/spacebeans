@@ -1,4 +1,3 @@
-
 # What's new?
 
 ## Release 1.1.1 - 2021-03-02
@@ -7,8 +6,8 @@
 
    This was preventing TLS 1.3 from being negotiated.
 
-   If you have deployed SpaceBeans already, add these too entries
-   to your cipher list:
+   If you have deployed SpaceBeans already, add these too entries to your cipher list:
+
 ```
     "TLS_AES_128_GCM_SHA256",
     "TLS_AES_256_GCM_SHA384"
@@ -30,15 +29,16 @@ user-directories = true
 user-directory-path = "/home/{user}/public_gemini/"
 ```
 
-Won't check for the user on the system, it only translates requests based on
-the user specific root path.
+Won't check for the user on the system, it only translates requests based on the user specific root path.
 
 For example:
+
 ```
 gemini://host/~myuser/
 ```
 
 Will use as root:
+
 ```
 /home/myuser/public_gemini/
 ```
