@@ -25,7 +25,7 @@ If you have a Gemini browser, you can also visit: `gemini://capsule.usebox.net/s
 ## How to run it
 
 Download [the `jar` distribution file](https://github.com/reidrac/spacebeans/releases/) and install Java Runtime Environment 8 (or
-later; [openJRE](https://adoptopenjdk.net/) recommended).
+later; [OpenJDK's JRE](https://adoptopenjdk.net/) recommended).
 
 You can run the service with:
 ```
