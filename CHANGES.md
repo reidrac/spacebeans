@@ -1,5 +1,9 @@
 # What's new?
 
+## Release 1.1.2 - 2021-03-02
+
+ - Disable debug logging that was left on by mistake
+
 ## Release 1.1.1 - 2021-03-02
 
  - Fix: reviewed example configuration file to include TLS 1.3 ciphers
