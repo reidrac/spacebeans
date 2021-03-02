@@ -1,6 +1,25 @@
 
 # What's new?
 
+## Release 1.1.1 - 2021-03-02
+
+ - Fix: reviewed example configuration file to include TLS 1.3 ciphers
+
+   This was preventing TLS 1.3 from being negotiated.
+
+   If you have deployed SpaceBeans already, add these too entries
+   to your cipher list:
+```
+    "TLS_AES_128_GCM_SHA256",
+    "TLS_AES_256_GCM_SHA384"
+```
+
+   Remember to restart your service.
+
+   See: https://wiki.mozilla.org/Security/Server_Side_TLS
+
+ - Fix: avoid reverse lookups when logging
+
 ## Release 1.1.0 - 2021-02-28
 
  - User directories support:
