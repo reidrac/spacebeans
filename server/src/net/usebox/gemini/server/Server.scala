@@ -227,13 +227,16 @@ case class Server(conf: ServiceConf) {
         closing = TLSClosing.ignoreCancel
       )
       .runForeach { connection =>
-        logger.debug(s"new connection ${connection.remoteAddress}")
+        val remoteHost = connection.remoteAddress.getHostString()
+        logger.debug(s"new connection $remoteHost")
 
         val handler = Flow[ByteString]
           .watchTermination() { (_, f) =>
             f.onComplete {
               _.toEither.swap.map(error =>
-                logger.warn(s"stream terminated: ${error.getMessage()}")
+                logger.warn(
+                  s"$remoteHost - stream terminated: ${error.getMessage()}"
+                )
               )
             }
           }
@@ -263,8 +266,7 @@ case class Server(conf: ServiceConf) {
           .take(1)
           .wireTap(resp =>
             logger.info(
-              s"""${connection.remoteAddress
-                .getHostString()} "${resp.req}" ${resp.status} ${resp.bodySize}"""
+              s"""$remoteHost "${resp.req}" ${resp.status} ${resp.bodySize}"""
             )
           )
           .flatMapConcat(_.toSource)
