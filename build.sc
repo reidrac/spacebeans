@@ -20,12 +20,12 @@ object server extends ScalaModule with ScalafmtModule with BuildInfo {
   )
 
   def ivyDeps = Agg(
-    ivy"com.github.pureconfig::pureconfig:0.14.0",
-    ivy"com.github.scopt::scopt:4.0.0",
-    ivy"org.log4s::log4s:1.8.2",
     ivy"ch.qos.logback:logback-classic:1.2.3",
-    ivy"com.typesafe.akka::akka-stream:2.6.12",
-    ivy"org.bouncycastle:bcprov-jdk15to18:1.68"
+    ivy"com.github.pureconfig::pureconfig:0.14.1",
+    ivy"com.github.scopt::scopt:4.0.0",
+    ivy"com.typesafe.akka::akka-stream:2.6.13",
+    ivy"org.bouncycastle:bcprov-jdk15to18:1.68",
+    ivy"org.log4s::log4s:1.9.0"
   )
 
   override def compile = T {
@@ -60,7 +60,7 @@ object server extends ScalaModule with ScalafmtModule with BuildInfo {
   def buildInfoPackageName = Some("net.usebox.gemini.server")
 
   object test extends Tests with ScalafmtModule {
-    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.2")
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.5")
     def testFrameworks = Seq("org.scalatest.tools.Framework")
 
     override def compile = T {
