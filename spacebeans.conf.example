@@ -33,7 +33,7 @@ virtual-hosts = [
         // important: directory's path is relative to the root
         //
         // directories = [
-        //     { path = "relative/path/", directory-listing = true }
+        //     { path = "relative/path/", directory-listing = true, allow-cgi = false }
         // ]
 
         // user directory support

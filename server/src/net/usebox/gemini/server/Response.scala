@@ -2,6 +2,11 @@ package net.usebox.gemini.server
 
 import java.nio.file.Path
 
+import scala.sys.process._
+import scala.util.Try
+
+import org.log4s._
+
 import akka.stream.ActorAttributes
 import akka.stream.scaladsl.{Source, FileIO}
 import akka.util.ByteString
@@ -76,6 +81,85 @@ case class DirListing(
     Source.single(ByteString(s"${status} ${meta}\r\n")) ++ Source.single(
       ByteString(body)
     )
+}
+
+case class Cgi(
+    req: String,
+    filename: String,
+    queryString: String,
+    pathInfo: String,
+    scriptName: String,
+    host: String,
+    port: String,
+    remoteAddr: String,
+    bodyPath: Option[Path] = None
+) extends Response {
+
+  private[this] val logger = getLogger
+
+  val responseRe = "([0-9]{2}) (.*)".r
+
+  val env = Map(
+    "GATEWAY_INTERFACE" -> "CGI/1.1",
+    "SERVER_SOFTWARE" -> s"${BuildInfo.name}/${BuildInfo.version}",
+    "SERVER_PROTOCOL" -> "GEMINI",
+    "GEMINI_URL" -> req,
+    "SCRIPT_NAME" -> scriptName,
+    "PATH_INFO" -> pathInfo,
+    "QUERY_STRING" -> queryString,
+    "SERVER_NAME" -> host,
+    "SERVER_PORT" -> port,
+    "REMOTE_ADDR" -> remoteAddr,
+    "REMOTE_HOST" -> remoteAddr
+  ).toSeq
+
+  val (status: Int, meta: String, body: String) = {
+    val output = new java.io.ByteArrayOutputStream
+    Try {
+      val jpb = new java.lang.ProcessBuilder(filename)
+      jpb.environment.clear()
+      env.foreach { case (k, v) => jpb.environment.put(k, v) }
+
+      val exit = (Process(jpb) #> output).!
+      output.close()
+
+      exit
+    }.toEither match {
+      case Right(0) =>
+        val body = output.toString("UTF-8")
+        body.split("\r\n").headOption match {
+          case Some(req @ responseRe(status, meta))
+              if req.length <= Server.maxReqLen =>
+            (status.toInt, meta, body)
+          case _ =>
+            logger.warn(s"$scriptName: invalid CGI response")
+            respError(40, "Invalid response from CGI")
+        }
+
+      case Right(exit) =>
+        logger.warn(s"$scriptName: failed to execute CGI (exit: $exit)")
+        respError(50, s"Error executing CGI")
+
+      case Left(error) =>
+        logger.warn(
+          s"$scriptName: failed to execute CGI (${error.getMessage()})"
+        )
+        respError(50, s"Error executing CGI")
+    }
+  }
+
+  def respError(
+      status: Int,
+      meta: String
+  ): (Int, String, String) = {
+    // response should fit in 1024 bytes: XX META\r\n
+    val limited = meta.substring(0, Math.min(meta.length, Server.maxReqLen - 5))
+    (status, meta, s"$status $limited\r\n")
+  }
+
+  def bodySize: Long = body.size
+
+  override def toSource = Source.single(ByteString(body))
 }
 
 case class TempRedirect(

@@ -24,7 +24,6 @@ case class Server(conf: ServiceConf) {
   private[this] val logger = getLogger
 
   val defPort = 1965
-  val maxReqLen = 1024
 
   val mimeTypes = conf.mimeTypes
   val defaultMimeType = conf.defaultMimeType
@@ -67,7 +66,7 @@ case class Server(conf: ServiceConf) {
       case mime => mime
     }
 
-  def handleReq(req: String): Response =
+  def handleReq(req: String, remoteAddr: String): Response =
     (for {
       uri <- Try(URI.create(req)).toEither
       resp <- Try(
@@ -107,10 +106,40 @@ case class Server(conf: ServiceConf) {
               .getDefault()
               .getPath(root, path)
               .normalize()
+            val cgi = vhost.getCgi(resource)
 
-            logger.debug(s"requesting: '$resource'")
+            logger.debug(s"requesting: '$resource', cgi is '$cgi'")
 
             resource.toFile() match {
+              case file
+                  if cgi
+                    .map(_.toFile())
+                    .map(f => f.isFile() && f.canExecute())
+                    .getOrElse(false) =>
+                logger.debug("is cgi, will execute")
+
+                val queryString =
+                  if (uri.getQuery() == null) "" else uri.getQuery()
+                val pathInfo =
+                  if (cgi.get.compareTo(resource) == 0) ""
+                  else
+                    "/" + resource
+                      .subpath(
+                        cgi.get.getNameCount(),
+                        resource.getNameCount()
+                      )
+                      .toString()
+
+                Cgi(
+                  req,
+                  filename = cgi.get.toString(),
+                  queryString = queryString,
+                  pathInfo = pathInfo,
+                  scriptName = resource.getFileName().toString(),
+                  host = vhost.host,
+                  port = conf.port.toString(),
+                  remoteAddr = remoteAddr
+                )
               case path if !path.exists() =>
                 logger.debug("no resource")
                 NotFound(req)
@@ -244,7 +273,7 @@ case class Server(conf: ServiceConf) {
             Framing
               .delimiter(
                 ByteString("\r\n"),
-                maximumFrameLength = maxReqLen + 1,
+                maximumFrameLength = Server.maxReqLen + 1,
                 allowTruncation = true
               )
           )
@@ -257,10 +286,10 @@ case class Server(conf: ServiceConf) {
                   logger.debug(s"invalid UTF-8 encoding: ${error.getMessage()}")
                   BadRequest(req.utf8String)
                 case Right(reqStr) =>
-                  if (req.size > maxReqLen)
+                  if (req.size > Server.maxReqLen)
                     BadRequest(reqStr.take(1024) + "{...}")
                   else
-                    handleReq(reqStr)
+                    handleReq(reqStr, remoteHost)
               }
           }
           .take(1)
@@ -274,4 +303,10 @@ case class Server(conf: ServiceConf) {
         connection.handleWith(handler)
       }
   }
+}
+
+object Server {
+
+  /** Maximum request length in bytes. */
+  val maxReqLen = 1024
 }

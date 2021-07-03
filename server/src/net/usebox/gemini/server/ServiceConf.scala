@@ -11,7 +11,11 @@ import org.log4s._
 
 case class KeyStore(path: String, alias: String, password: String)
 
-case class Directory(path: String, directoryListing: Option[Boolean])
+case class Directory(
+    path: String,
+    directoryListing: Option[Boolean],
+    allowCgi: Option[Boolean]
+)
 
 case class VirtualHost(
     host: String,
@@ -34,9 +38,24 @@ object VirtualHost {
     def getDirectoryListing(path: Path): Boolean =
       vhost.directories
         .find(_.path == path.toString())
-        .fold(vhost.directoryListing)(loc =>
-          loc.directoryListing.getOrElse(vhost.directoryListing)
+        .flatMap(_.directoryListing)
+        .getOrElse(vhost.directoryListing)
+
+    def getCgi(path: Path): Option[Path] =
+      vhost.directories
+        .find(d =>
+          path.startsWith(
+            d.path
+          ) && path.toString != d.path && d.allowCgi == Some(true)
         )
+        .collect {
+          case d =>
+            val dp =
+              FileSystems.getDefault().getPath(d.path).normalize()
+            FileSystems
+              .getDefault()
+              .getPath(d.path, path.getName(dp.getNameCount()).toString())
+        }
 
     def getRoot(path: String): (String, String) =
       path match {

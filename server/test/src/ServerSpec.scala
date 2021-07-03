@@ -135,105 +135,118 @@ class ServerSpec extends AnyFlatSpec with Matchers {
   behavior of "handleReq"
 
   it should "return bad request on URLs with no scheme" in {
-    Server(TestData.conf).handleReq("//localhost/") should matchPattern {
+    Server(TestData.conf)
+      .handleReq("//localhost/", "127.0.0.1") should matchPattern {
       case _: BadRequest =>
     }
   }
 
   it should "return proxy request refused on port mismatch" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost:8080/") should matchPattern {
+      .handleReq("gemini://localhost:8080/", "127.0.0.1") should matchPattern {
       case _: ProxyRequestRefused =>
     }
   }
 
   it should "return proxy request refused when port not provided and configured port is not default" in {
     Server(TestData.conf.copy(port = 8080))
-      .handleReq("gemini://localhost/") should matchPattern {
+      .handleReq("gemini://localhost/", "127.0.0.1") should matchPattern {
       case _: ProxyRequestRefused =>
     }
   }
 
   it should "return success when port is provided and matches configured port (not default)" in {
     Server(TestData.conf.copy(port = 8080))
-      .handleReq("gemini://localhost:8080/") should matchPattern {
+      .handleReq("gemini://localhost:8080/", "127.0.0.1") should matchPattern {
       case _: Success =>
     }
   }
 
   it should "return proxy request refused when the vhost is not found" in {
     Server(TestData.conf)
-      .handleReq("gemini://otherhost/") should matchPattern {
+      .handleReq("gemini://otherhost/", "127.0.0.1") should matchPattern {
       case _: ProxyRequestRefused =>
     }
   }
 
   it should "return bad request when user info is present" in {
     Server(TestData.conf)
-      .handleReq("gemini://user@localhost/") should matchPattern {
+      .handleReq("gemini://user@localhost/", "127.0.0.1") should matchPattern {
       case _: BadRequest =>
     }
   }
 
   it should "return bad request when the path is out of root dir" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/../../") should matchPattern {
+      .handleReq("gemini://localhost/../../", "127.0.0.1") should matchPattern {
       case _: BadRequest =>
     }
   }
 
   it should "return bad request for invalid URLs" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/ invalid") should matchPattern {
+      .handleReq(
+        "gemini://localhost/ invalid",
+        "127.0.0.1"
+      ) should matchPattern {
       case _: BadRequest =>
     }
   }
 
   it should "redirect to normalize the URL" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/./") should matchPattern {
+      .handleReq("gemini://localhost/./", "127.0.0.1") should matchPattern {
       case _: PermanentRedirect =>
     }
   }
 
   it should "return not found if the path doesn't exist" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/doesnotexist") should matchPattern {
+      .handleReq(
+        "gemini://localhost/doesnotexist",
+        "127.0.0.1"
+      ) should matchPattern {
       case _: NotFound =>
     }
   }
 
   it should "return not found if a dot file" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/.dotfile") should matchPattern {
+      .handleReq(
+        "gemini://localhost/.dotfile",
+        "127.0.0.1"
+      ) should matchPattern {
       case _: NotFound =>
     }
   }
 
   it should "return success on reading file" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/index.gmi") should matchPattern {
+      .handleReq(
+        "gemini://localhost/index.gmi",
+        "127.0.0.1"
+      ) should matchPattern {
       case Success(_, "text/gemini", Some(_), 25L) =>
     }
   }
 
   it should "redirect and normalize request on a directory" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/dir") should matchPattern {
+      .handleReq("gemini://localhost/dir", "127.0.0.1") should matchPattern {
       case _: PermanentRedirect =>
     }
   }
 
   it should "return an existing index file when requesting a directory" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/") should matchPattern {
+      .handleReq("gemini://localhost/", "127.0.0.1") should matchPattern {
       case Success(_, "text/gemini", Some(_), 25L) =>
     }
   }
 
   it should "return proxy request refused for non gemini schemes" in {
     Server(TestData.conf)
-      .handleReq("https://localhost/") should matchPattern {
+      .handleReq("https://localhost/", "127.0.0.1") should matchPattern {
       case _: ProxyRequestRefused =>
     }
   }
@@ -243,7 +256,10 @@ class ServerSpec extends AnyFlatSpec with Matchers {
       TestData.conf.copy(virtualHosts =
         List(TestData.conf.virtualHosts(0).copy(geminiParams = Some("test")))
       )
-    ).handleReq("gemini://localhost/index.gmi") should matchPattern {
+    ).handleReq(
+      "gemini://localhost/index.gmi",
+      "127.0.0.1"
+    ) should matchPattern {
       case Success(_, "text/gemini; test", Some(_), 25L) =>
     }
   }
@@ -252,7 +268,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "return a directory listing if is enabled and no index" in {
     Server(TestData.conf)
-      .handleReq("gemini://localhost/dir/") should matchPattern {
+      .handleReq("gemini://localhost/dir/", "127.0.0.1") should matchPattern {
       case _: DirListing =>
     }
   }
@@ -269,13 +285,14 @@ class ServerSpec extends AnyFlatSpec with Matchers {
                 Directory(
                   getPath(getClass.getResource("/").getPath(), "dir/")
                     .toString(),
-                  directoryListing = Some(true)
+                  directoryListing = Some(true),
+                  allowCgi = None
                 )
               )
             )
         )
       )
-    ).handleReq("gemini://localhost/dir/") should matchPattern {
+    ).handleReq("gemini://localhost/dir/", "127.0.0.1") should matchPattern {
       case _: DirListing =>
     }
   }
@@ -292,13 +309,14 @@ class ServerSpec extends AnyFlatSpec with Matchers {
                 Directory(
                   getPath(getClass.getResource("/").getPath(), "dir/")
                     .toString(),
-                  directoryListing = Some(false)
+                  directoryListing = Some(false),
+                  allowCgi = None
                 )
               )
             )
         )
       )
-    ).handleReq("gemini://localhost/dir/") should matchPattern {
+    ).handleReq("gemini://localhost/dir/", "127.0.0.1") should matchPattern {
       case _: NotFound =>
     }
   }
@@ -308,7 +326,7 @@ class ServerSpec extends AnyFlatSpec with Matchers {
       TestData.conf.copy(virtualHosts =
         List(TestData.conf.virtualHosts(0).copy(directoryListing = false))
       )
-    ).handleReq("gemini://localhost/dir/") should matchPattern {
+    ).handleReq("gemini://localhost/dir/", "127.0.0.1") should matchPattern {
       case _: NotFound =>
     }
   }
@@ -317,7 +335,8 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "return success on reading file" in {
     Server(TestData.confUserDir).handleReq(
-      "gemini://localhost/~username/index.gmi"
+      "gemini://localhost/~username/index.gmi",
+      "127.0.0.1"
     ) should matchPattern {
       case Success(_, "text/gemini", Some(_), 38L) =>
     }
@@ -325,7 +344,8 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "return redirect accessing the user directory without ending slash" in {
     Server(TestData.confUserDir).handleReq(
-      "gemini://localhost/~username"
+      "gemini://localhost/~username",
+      "127.0.0.1"
     ) should matchPattern {
       case _: PermanentRedirect =>
     }
@@ -333,7 +353,8 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "return success accessing the user directory index" in {
     Server(TestData.confUserDir).handleReq(
-      "gemini://localhost/~username/"
+      "gemini://localhost/~username/",
+      "127.0.0.1"
     ) should matchPattern {
       case Success(_, "text/gemini", Some(_), 38L) =>
     }
@@ -341,7 +362,8 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "return bad request trying to exit the root directory" in {
     Server(TestData.confUserDir).handleReq(
-      "gemini://localhost/~username/../../"
+      "gemini://localhost/~username/../../",
+      "127.0.0.1"
     ) should matchPattern {
       case _: BadRequest =>
     }
@@ -349,7 +371,8 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "return redirect to the virtual host root when leaving the user dir" in {
     Server(TestData.confUserDir).handleReq(
-      "gemini://localhost/~username/../"
+      "gemini://localhost/~username/../",
+      "127.0.0.1"
     ) should matchPattern {
       case _: PermanentRedirect =>
     }
@@ -357,13 +380,15 @@ class ServerSpec extends AnyFlatSpec with Matchers {
 
   it should "not translate root if used an invalid user pattern" in {
     Server(TestData.confUserDir).handleReq(
-      "gemini://localhost/~username../"
+      "gemini://localhost/~username../",
+      "127.0.0.1"
     ) should matchPattern {
       case _: NotFound =>
     }
 
     Server(TestData.confUserDir).handleReq(
-      "gemini://localhost/~0invalid/"
+      "gemini://localhost/~0invalid/",
+      "127.0.0.1"
     ) should matchPattern {
       case _: NotFound =>
     }
@@ -379,7 +404,8 @@ class ServerSpec extends AnyFlatSpec with Matchers {
         )
       )
     ).handleReq(
-      "gemini://localhost/~username/"
+      "gemini://localhost/~username/",
+      "127.0.0.1"
     ) should matchPattern {
       case _: NotFound =>
     }
