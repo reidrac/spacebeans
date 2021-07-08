@@ -1,3 +1,5 @@
+⚠️ **Important**: this project has moved to GitLab. You can get the latest code from: https://gitlab.com/reidrac/spacebeans
+
 # SpaceBeans Gemini Server
 
 [![Actions Status](https://github.com/reidrac/spacebeans/workflows/CI/badge.svg)](https://github.com/reidrac/spacebeans/actions)
